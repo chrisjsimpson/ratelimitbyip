@@ -1,0 +1,7 @@
+[package]
+name = "ratebyip"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ratelimit = "0.10.0"
