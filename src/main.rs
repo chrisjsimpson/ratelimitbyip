@@ -1,6 +1,5 @@
 use ratelimit::Ratelimiter;
 //use std::time::Duration;
-use std::thread;
 use std::io;
 //use std::io::{self, stdin, Read, Write};
 use std::process;
@@ -68,78 +67,68 @@ fn main() -> io::Result<()> {
     eprintln!("clients hashmap created.");
 
 
-    let consuming_thread = thread::spawn(move || {
-      loop {
-        // Read in ip address          
-        let mut line = String::new();
-        let n_bytes_read = io::stdin().read_line(&mut line);
-        match n_bytes_read {
-            Ok(n_bytes_read) => {
-              if n_bytes_read > 0 {
-                eprintln!("n_bytes_read is > 0");
-                eprintln!("Read {:?} bytes.", n_bytes_read);
-                eprintln!("The stdin input was: {}", line);
-                // Try to parse input as Ipv4Addr
-                let client_ip: Result<_, _> = line.trim().parse::<Ipv4Addr>();
-                match client_ip {
-                    Ok(client_ip) => {
-                      eprintln!("Parsed input as ipv4 address: {:?}", client_ip);
-                      let mut process_client_ip = || {
-                        eprintln!("Processing client_ip: {}", client_ip);
-                        eprintln!("Checking if client_ip is alread in HashMap (if not will add it): {}", client_ip);
-                        if !clients.contains_key(&client_ip) {
-                          eprintln!("client_ip {} not found in clients HashMap, adding it", client_ip);
-                          eprintln!("Creating rate limiter for client_ip: {}", client_ip);
-                          let ratelimiter = Ratelimiter::builder(1, Duration::from_secs(5))
-                          .max_tokens(1)
-                          .initial_available(5)
-                          .build()
-                          .unwrap();
-                          eprintln!("Inserted new client and ratelimiter into clients HashMap. {}", client_ip);
-                          clients.insert(client_ip, ratelimiter);
+    loop {
+      // Read in ip address          
+      let mut line = String::new();
+      let n_bytes_read = io::stdin().read_line(&mut line);
+      match n_bytes_read {
+          Ok(n_bytes_read) => {
+            if n_bytes_read > 0 {
+              eprintln!("n_bytes_read is > 0");
+              eprintln!("Read {:?} bytes.", n_bytes_read);
+              eprintln!("The stdin input was: {}", line);
+              // Try to parse input as Ipv4Addr
+              let client_ip: Result<_, _> = line.trim().parse::<Ipv4Addr>();
+              match client_ip {
+                  Ok(client_ip) => {
+                    eprintln!("Parsed input as ipv4 address: {:?}", client_ip);
+                    let mut process_client_ip = || {
+                      eprintln!("Processing client_ip: {}", client_ip);
+                      eprintln!("Checking if client_ip is alread in HashMap (if not will add it): {}", client_ip);
+                      if !clients.contains_key(&client_ip) {
+                        eprintln!("client_ip {} not found in clients HashMap, adding it", client_ip);
+                        eprintln!("Creating rate limiter for client_ip: {}", client_ip);
+                        let ratelimiter = Ratelimiter::builder(1, Duration::from_secs(5))
+                        .max_tokens(1)
+                        .initial_available(5)
+                        .build()
+                        .unwrap();
+                        eprintln!("Inserted new client and ratelimiter into clients HashMap. {}", client_ip);
+                        clients.insert(client_ip, ratelimiter);
 
-                        } else {
-                          eprintln!("client_ip {} was found in clients HashMap.", client_ip);
-                          eprintln!("The length of the clients HashMap is {}", clients.len());
-                        }
+                      } else {
+                        eprintln!("client_ip {} was found in clients HashMap.", client_ip);
+                        eprintln!("The length of the clients HashMap is {}", clients.len());
+                      }
 
-                        eprintln!("Checking if client_ip has exceeded rate limit");
+                      eprintln!("Checking if client_ip has exceeded rate limit");
 
-                        match clients.get(&client_ip) {
-                          Some(client_rate_limiter ) => { 
-                            eprintln!("Got rate limiter out for {}", client_ip);
-                            match client_rate_limiter.try_wait() {
-                                Ok(_) => eprintln!("Proceed! {} Not rate limited yet!", client_ip),
-                                Err(duration  )  => eprintln!("rate limmited! {:?}", duration)
-                            }
-                        },
-                          None => eprintln!("Could not locate rate limiter for client ip {}", client_ip)
-                        }
-                        
-                      };
+                      match clients.get(&client_ip) {
+                        Some(client_rate_limiter ) => { 
+                          eprintln!("Got rate limiter out for {}", client_ip);
+                          match client_rate_limiter.try_wait() {
+                              Ok(_) => eprintln!("Proceed! {} Not rate limited yet!", client_ip),
+                              Err(duration  )  => eprintln!("rate limmited! {:?}", duration)
+                          }
+                      },
+                        None => eprintln!("Could not locate rate limiter for client ip {}", client_ip)
+                      }
+                      
+                    };
 
-                      process_client_ip();
-      
-                    }
-                    Err(e) => eprintln!("error parsing Ipv4Addr: {e:?}"),
-                }
+                    process_client_ip();
+    
+                  }
+                  Err(e) => eprintln!("error parsing Ipv4Addr: {e:?}"),
               }
-            },
-            Err(_) => ()
-        }
-
-        //thread::sleep(Duration::from_secs(1));
-        thread::yield_now(); // TODO wait for stdin rather than sleeping
+            }
+          },
+          Err(_) => ()
       }
-    });
-
-
-
-    match consuming_thread.join() {
-      Ok(_) => eprintln!("Thread joined"),
-      Err(error) => eprintln!("Could not join thread. client must wait {:?}", error.downcast_ref::<&str>()),
+      //thread::sleep(Duration::from_secs(1));
+      //thread::yield_now(); // TODO wait for stdin rather than sleeping
     }
-    Ok(())
+
 
     // Use the rate limiter
     // loop {
