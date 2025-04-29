@@ -1,8 +1,6 @@
 use ratelimit::Ratelimiter;
-use std::fs::File;
 //use std::time::Duration;
 use std::io;
-use std::io::Write;
 use std::process;
 use std::time::Duration;
 use std::net::Ipv4Addr;
@@ -52,9 +50,6 @@ A:
 
 fn main() -> io::Result<()> {
     let mypid = process::id();
-    let line = String::new();
-    let mut file = File::create("/tmp/foo.txt")?;
-    file.write_all(line.as_bytes())?;
 
     eprintln!("My pid is {}", mypid);
     eprintln!("Don't Test me with echo '127.0.0.1' > /proc/{}/fd/0", mypid);
