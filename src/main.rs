@@ -3,7 +3,6 @@ use std::fs::File;
 //use std::time::Duration;
 use std::io;
 use std::io::Write;
-//use std::io::{self, stdin, Read, Write};
 use std::process;
 use std::time::Duration;
 use std::net::Ipv4Addr;
@@ -31,7 +30,7 @@ A: Apache lets you call an an executable program for rewrite purposes.
       and then communicates with the rewriting engine via STDIN and STDOUT."
    (https://httpd.apache.org/docs/2.4/rewrite/rewritemap.html#prg:~:text=prg%3A-,External%20Rewriting%20Program,-When%20a%20MapType)
    
-   I'm using that crevis as a (hacky) way in enable a 'simple' per-client ip rate limmiter.
+   I'm using that crevice as a (hacky) way in enable a 'simple' per-client ip rate limiter.
 
 Q: Why does this print to stderr so much?
 A: Because apache binds to stdout of this program
@@ -89,7 +88,7 @@ fn main() -> io::Result<()> {
                     eprintln!("Parsed input as ipv4 address: {:?}", client_ip);
                     let mut process_client_ip = || {
                       eprintln!("Processing client_ip: {}", client_ip);
-                      eprintln!("Checking if client_ip is alread in HashMap (if not will add it): {}", client_ip);
+                      eprintln!("Checking if client_ip is already in HashMap (if not will add it): {}", client_ip);
                       if !clients.contains_key(&client_ip) {
                         eprintln!("client_ip {} not found in clients HashMap, adding it", client_ip);
                         eprintln!("Creating rate limiter for client_ip: {}", client_ip);
@@ -122,12 +121,12 @@ fn main() -> io::Result<()> {
                               },
                               Err(duration  )  => {
                                   eprintln!("rate limited! {:?}", duration);
-                                  //println!("ratelimitbyip-ratelimited-{:?}", duration);
+                                  eprintln!("ratelimitbyip-ratelimited-{:?}", duration);
                                   println!("/ratelimited");
                               }
                           }
                       },
-                        None => eprintln!("Could not locate rate limiter for client ip {}", client_ip)
+                        _none => eprintln!("Could not locate rate limiter for client ip {}", client_ip)
                       }
                       
                     };
@@ -141,21 +140,5 @@ fn main() -> io::Result<()> {
           },
           Err(_) => ()
       }
-      //thread::sleep(Duration::from_secs(1));
-      //thread::yield_now(); // TODO wait for stdin rather than sleeping
     }
-
-
-    // Use the rate limiter
-    // loop {
-    //     // a simple sleep-wait
-    //     if let Err(sleep) = ratelimiter.try_wait() {
-    //         std::thread::sleep(sleep);
-    //         println!("Allowed");
-    //         continue;
-    //     }
-
-    //     // do some rate limited action here
-    //     println!("Rate limited!")
-    // }
 }
