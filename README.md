@@ -24,6 +24,10 @@ git checkout https://github.com/chrisjsimpson/ratelimitbyip.git
 cargo build
 ```
 
+> [!IMPORTANT]
+> You **must** `chown` (change the ownership of your `ratelimit` binary) to the same user apache is
+running at (e.g. user `www-data` by default on ubuntu) so that apache can exec the `ratelimit` binary when apache starts.
+
 ### Configure apache to use `ratelimitbyip`
 
 Example Apache configuration:
